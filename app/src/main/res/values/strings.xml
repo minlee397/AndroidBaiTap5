@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">BaiTap5</string>
+    <string name="searching_student_app">Attendance Student</string>
+    <string name="search">Search</string>
+    <string name="refresh">Refresh</string>
+    <string name="scan">Scan</string>
+    <string name="insert_student_id">Student ID:</string>
+    <string name="title_activity_detail">DetailActivity</string>
+    <string name="last_name">Last Name:</string>
+    <string name="first_name">First Name:</string>
+    <string name="student_id">Student ID:</string>
+    <string name="last_update">Last Update:</string>
+    <string name="day">Day:</string>
+    <string name="time">Time:</string>
+    <string name="firstname">FirstName</string>
+    <string name="lastname">LastName</string>
+    <string name="dstudent_id">Student ID</string>
+    <string name="dayy">Day</string>
+    <string name="timee">Time</string>
+    <string name="last_updatee">Last Update:</string>
+    <string name="full_name">Name:</string>
+    <string name="student_iddd">Student ID:</string>
+    <string name="fullname">Name</string>
+    <string name="student_idd">Student ID</string>
+    <string name="dayyy">Day</string>
+</resources>
