@@ -43,7 +43,7 @@ import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String TAG = "LyBaDongNew";
+    public static final String TAG = "LyBaDong";
     public static List<Student> datastudent = new ArrayList<>();
     public static List<Student> temp_search_list=null;
     public List<Student> filteredList = new ArrayList<>();
