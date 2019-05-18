@@ -84,7 +84,7 @@ public class DetailActivity extends AppCompatActivity {
                 writer.write(line);
             }
             writer.close();
-            Toast.makeText(this, "Checked", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Update Addttended", Toast.LENGTH_SHORT).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -102,29 +102,4 @@ public class DetailActivity extends AppCompatActivity {
         imgPortrait = findViewById(R.id.imgPortrait);
         txtUpdate = findViewById(R.id.txtUpdate);
     }
-    public void setPortrait (String id) {
-
-        if (id.equals("3115410001")) {
-            imgPortrait.setImageResource(R.drawable.portrait_001);
-        } else if (id.equals("3115410002")) {
-            imgPortrait.setImageResource(R.drawable.portrait_002);
-        } else if (id.equals("3115410003")) {
-            imgPortrait.setImageResource(R.drawable.portrait_003);
-        } else if (id.equals("3115410004")) {
-            imgPortrait.setImageResource(R.drawable.portrait_004);
-        } else if (id.equals("3115410005")) {
-            imgPortrait.setImageResource(R.drawable.portrait_005);
-        } else if (id.equals("3115410006")) {
-            imgPortrait.setImageResource(R.drawable.portrait_006);
-        } else if (id.equals("3115410007")) {
-            imgPortrait.setImageResource(R.drawable.portrait_007);
-        } else if (id.equals("3115410008")) {
-            imgPortrait.setImageResource(R.drawable.portrait_008);
-        } else if (id.equals("3115410009")) {
-            imgPortrait.setImageResource(R.drawable.portrait_009);
-        } else if (id.equals("3115410010")) {
-            imgPortrait.setImageResource(R.drawable.portrait_010);
-        }
-    }
 }
-

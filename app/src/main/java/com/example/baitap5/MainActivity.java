@@ -1,12 +1,20 @@
 package com.example.baitap5;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,6 +29,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -39,6 +48,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -52,10 +62,16 @@ public class MainActivity extends AppCompatActivity {
 
     Button btnSearch;
     Button btnRefresh;
+    Button btnSendMail;
     TextView txtSearch;
     Button btnScan;
     public static TextView txtScanResult;
     public Context temp_context = this;
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -66,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         txtSearch = findViewById(R.id.txtSearch);
         btnSearch = findViewById(R.id.btnSearch);
         btnRefresh = findViewById(R.id.btnRefresh);
+        btnSendMail = findViewById(R.id.btnSendMail);
         btnScan = findViewById(R.id.btnScan);
 
         ReadStudentData();
@@ -105,6 +122,85 @@ public class MainActivity extends AppCompatActivity {
                 integrator.initiateScan();
             }
         });
+
+        btnSendMail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SendMail();
+            }
+        });
+        verifyStoragePermissions(MainActivity.this);
+    }
+
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    protected  void SendMail(){
+        File sdcard = Environment.getExternalStorageDirectory();
+        File dir = new File(sdcard.getAbsolutePath());
+        File file = new File(dir, "data.csv");
+        try {
+            FileOutputStream os = new FileOutputStream(file);
+            OutputStreamWriter writer = new OutputStreamWriter(os);
+            for (Student item : datastudent) {
+                LocalDate Date = item.getmUpdatedDay();
+                String Day = String.valueOf(Date.getDayOfMonth());
+                String Month = String.valueOf(Date.getMonthValue());
+                String Year = String.valueOf(Date.getYear());
+                String formatDate = Day+"/"+Month+"/"+Year;
+                String line = item.getmMSSV()+ ","+item.getmFirstName()+ ","+item.getmLastName()+ ","+item.getmImages()+ ","+formatDate+ ","+item.getmUpdatedTime().toString()+"\n";
+                writer.write(line);
+            }
+            writer.close();
+            try{
+                String pathdir = Environment.getExternalStorageDirectory().getAbsolutePath();
+                File newfile = new File(pathdir,"data.csv");
+                Uri path = FileProvider.getUriForFile(MainActivity.this,"com.example.file.provider", newfile);
+
+                Date c = Calendar.getInstance().getTime();
+                SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+                String formattedDate = df.format(c);
+
+                String strSubject = "Danh sach điểm danh của ngày (" +formattedDate +") - Lớp DCT1152";
+                String strContext = "Chào thầy/cô!\n " +
+                        "Em xin gửi bảng danh sách điểm danh của lớp DCT1152 ạ.\n\n" +
+                        "Em cám ơn Thầy/cô.\n\n" +
+                        "Lý Bá Đông.";
+
+                Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                emailIntent.setType("text/html");
+                String to[] = {"min.lee397@gmail.com"};
+                emailIntent.putExtra(Intent.EXTRA_EMAIL, to);
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT, strSubject);
+                emailIntent.putExtra(Intent.EXTRA_TEXT, strContext);
+                emailIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                emailIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                if (path != null) {
+                    emailIntent.putExtra(Intent.EXTRA_STREAM, path);
+                }
+                startActivity(Intent.createChooser(emailIntent , "Send email..."));
+            }
+            catch (Exception ex){
+                String temp = ex.getMessage();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -125,25 +221,37 @@ public class MainActivity extends AppCompatActivity {
             else {
                 int j=0;
                 String temp_mssv = result.getContents();
-                Toast.makeText(this, "You have successfully scanned the code", Toast.LENGTH_SHORT).show();
-                Student student_scan = new Student();
+                boolean Search_flag = false;
                 for(Student temp : datastudent)
                 {
                     if (temp.getmMSSV().equals(temp_mssv))
                     {
-                        student_scan=temp;
-                        Intent intent = new Intent(this,DetailActivity.class);
-                        intent.putExtra("Student_FirstName",student_scan.getmFirstName());
-                        intent.putExtra("Student_LastName",student_scan.getmLastName());
-                        intent.putExtra("Student_Images",student_scan.getmImages());
-                        intent.putExtra("Student_ID",student_scan.getmMSSV());
-                        intent.putExtra("Student_Day",student_scan.getmUpdatedDay().toString());
-                        intent.putExtra("Student_Time",student_scan.getmUpdatedTime().toString());
-                        this.startActivity(intent);
+                        filteredList.add(temp);
+                        Search_flag = true;
+                        break;
+                    }
+                }
+                if(Search_flag == false)
+                    Toast.makeText(getApplicationContext(),"We didn't searched this student",Toast.LENGTH_LONG).show();
+                else {
+                    Student student_scan = new Student();
+                    for(Student temp : datastudent)
+                    {
+                        if (temp.getmMSSV().equals(temp_mssv))
+                        {
+                            student_scan=temp;
+                            Intent intent = new Intent(this,DetailActivity.class);
+                            intent.putExtra("Student_FirstName",student_scan.getmFirstName());
+                            intent.putExtra("Student_LastName",student_scan.getmLastName());
+                            intent.putExtra("Student_Images",student_scan.getmImages());
+                            intent.putExtra("Student_ID",student_scan.getmMSSV());
+                            intent.putExtra("Student_Day",student_scan.getmUpdatedDay().toString());
+                            intent.putExtra("Student_Time",student_scan.getmUpdatedTime().toString());
+                            this.startActivity(intent);
+                        }
                     }
                 }
             }
-
         }
         else {
             super.onActivityResult(requestCode, resultCode, data);
@@ -247,6 +355,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
     public static Date parseDate(String date) {
         try {
             return new SimpleDateFormat("yyyy-MM-dd").parse(date);
